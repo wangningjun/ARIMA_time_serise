@@ -62,7 +62,9 @@ if __name__ == '__main__':
         if len(data)<predict_long:
             continue
         X = data.values
-		mode = np.mean(X)
+        mode = np.mean(X)
+        if mode <10:
+            continue
         model= Arima()
         results_pre= predict(model)
         rng = pd.date_range(data.idxmin()[0], periods=len(data)+predict_long+1, freq='H')
@@ -70,4 +72,3 @@ if __name__ == '__main__':
         path = os.path.join(path_out+file)
         results_pre.to_csv(str(path))
         # show(results_pre)
-
