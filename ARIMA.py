@@ -54,20 +54,20 @@ def show(history):
 if __name__ == '__main__':
     days_in_day = 24
     predict_long = 23
-    path_in = 'data/in/'  #文件夹路径
+    path_in = 'data/in/outdata/'  #文件夹路径
     path_out = 'data/out/'
     for file in os.listdir(path_in):
         df = open(path_in+file)  # file
-        data = pd.read_csv(df, header=0, index_col=0)
+        data = pd.read_csv(df, usecols = [0])
         if len(data)<predict_long:
             continue
-        data.index = pd.to_datetime(data.index)
         X = data.values
+		mode = np.mean(X)
         model= Arima()
         results_pre= predict(model)
         rng = pd.date_range(data.idxmin()[0], periods=len(data)+predict_long+1, freq='H')
         results_pre = pd.Series(results_pre,index=rng)
         path = os.path.join(path_out+file)
-        results_pre.to_csv(str(path)+'.csv')
+        results_pre.to_csv(str(path))
         # show(results_pre)
 
