@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pylab as plt
 from statsmodels.tsa.arima_model import ARIMA
 import os
-from pandas.core.frame import DataFrame
+
 
 '''
 更新日期：2018/8/15
@@ -23,22 +23,16 @@ def difference(dataset, interval=1):
 def inverse_difference(history, yhat, interval=1):
     return yhat + history[-interval]
 
-def Arima_up(x):
-    differenced = difference(x, days_up)
+def Arima(x):
+    differenced = difference(x, days_in_day)
 
-    model = ARIMA(differenced, order=(1, 0, 2))
-    ARIMA_model = model.fit(disp=0)
-    return ARIMA_model
-
-def Arima_down(x):
-    differenced = difference(x, days_down)
     model = ARIMA(differenced, order=(2, 0, 2))
     ARIMA_model = model.fit(disp=0)
     return ARIMA_model
 
-def predict(X,model,days):
+def predict(X,model):
     # 在训练的时间段内，predict和fittedvalues的效果一样，不同的是predict可以往后预测
-    differenced = difference(X, days)
+    differenced = difference(X, days_in_day)
     start_index = len(differenced)
     end_index = len(differenced) + predict_long
     forecast = model.predict(start=start_index, end=end_index)
@@ -46,7 +40,7 @@ def predict(X,model,days):
     # plt.plot(history, color='red', label='predict_data')
 
     for yhat in forecast:
-        inverted = inverse_difference(history, yhat, days)
+        inverted = inverse_difference(history, yhat, days_in_day)
         history.append(inverted)
     return history
 
@@ -59,8 +53,7 @@ def show(history):
     plt.show()
 
 if __name__ == '__main__':
-    days_up = 24
-    days_down = 23
+    days_in_day = 23
     predict_long = 23
     path_in = 'data/in/outdata/'  #文件夹路径
     path_out = 'data/out/'
@@ -72,25 +65,16 @@ if __name__ == '__main__':
 
         if len(data)<predict_long:
             continue
-        X1 = data['up']
+
         X2 = data['down']
         try:
-            model_up = Arima_up(X1)
+            model_down = Arima(X2)
         except:
             continue
-        try:
-            model_down = Arima_down(X2)
-        except:
-            continue
-        results_pre_up = predict(X1,model_up,days_up)
-        results_pre_down = predict(X2,model_down,days_down)
+        results_pre_down = predict(X2,model_down)
 
         rng = pd.date_range(data['time'][0], periods=len(data)+predict_long+1, freq='H')
-        results_pre = []
-        # results_pre.append(results_pre_up)
-        # results_pre.append(results_pre_down)
-        DataFrame({})
-        results_pre = pd.Series(results_pre,index=rng)
+        results_pre = pd.Series(results_pre_down,index=rng)
         path = os.path.join(path_out+file)
         results_pre.to_csv(str(path))
         # show(results_pre)
