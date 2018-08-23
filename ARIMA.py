@@ -47,6 +47,8 @@ def predict(X,model,days):
 
     for yhat in forecast:
         inverted = inverse_difference(history, yhat, days)
+        if inverted<0:    # 预测出来小于0的值全都填为0
+            inverted = 0
         history.append(inverted)
     return history
 
@@ -86,11 +88,9 @@ if __name__ == '__main__':
         results_pre_down = predict(X2,model_down,days_down)
 
         rng = pd.date_range(data['time'][0], periods=len(data)+predict_long+1, freq='H')
-        results_pre = []
-        # results_pre.append(results_pre_up)
-        # results_pre.append(results_pre_down)
-        DataFrame({})
-        results_pre = pd.Series(results_pre,index=rng)
+        rng = np.array(rng)
+        results_pre = DataFrame({'time':rng,'up':results_pre_up,'down':results_pre_down})
+        # results_pre = pd.Series(results_pre,index=rng)
         path = os.path.join(path_out+file)
-        results_pre.to_csv(str(path))
+        results_pre.to_csv(str(path),index=0)
         # show(results_pre)
