@@ -53,7 +53,7 @@ def show(history):
     plt.show()
 
 if __name__ == '__main__':
-    days_in_day = 23
+    days_in_day = 2
     predict_long = 23
     path_in = 'data/in/outdata/'  #文件夹路径
     path_out = 'data/out/'

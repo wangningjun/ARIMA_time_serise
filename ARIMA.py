@@ -4,10 +4,12 @@ import matplotlib.pylab as plt
 from statsmodels.tsa.arima_model import ARIMA
 import os
 from pandas.core.frame import DataFrame
+from sys import maxsize
 
 '''
-更新日期：2018/8/15
+更新日期：2018/8/28
 说明：本脚本的内容是以ARIMA算法预测时间序列
+更新说明：实现动态调参
 准确预测未来n时刻的数据
 '''
 
@@ -60,12 +62,33 @@ def show(history):
     plt.plot(history, color='red', label='predict2')
     plt.show()
 
+def proper_model(data_ts, maxLag):
+    init_bic = maxsize
+    init_p = 0
+    init_q = 0
+    init_properModel = None
+    for p in np.arange(maxLag):
+        for q in np.arange(maxLag):
+            model = ARIMA(data_ts, order=(p,0,q))
+            try:
+                results_ARIMA = model.fit(disp=-1)
+            except:
+                continue
+            bic = results_ARIMA.bic
+            if bic < init_bic:
+                init_p = p
+                init_q = q
+                init_properModel = results_ARIMA
+                init_bic = bic
+    return init_bic, init_p, init_q, init_properModel
+
 if __name__ == '__main__':
     days_up = 24
     days_down = 23
     predict_long = 23
     path_in = 'data/in/outdata/'  #文件夹路径
     path_out = 'data/out/'
+    count =0
     for file in os.listdir(path_in):
         df = open(path_in+file,'rb')  # file
         # data = pd.read_csv(df, usecols = [0])
@@ -86,6 +109,8 @@ if __name__ == '__main__':
             continue
         results_pre_up = predict(X1,model_up,days_up)
         results_pre_down = predict(X2,model_down,days_down)
+        count+=1
+        print(count)
 
         rng = pd.date_range(data['time'][0], periods=len(data)+predict_long+1, freq='H')
         rng = np.array(rng)

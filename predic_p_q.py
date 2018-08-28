@@ -3,11 +3,13 @@ import pandas as pd
 import matplotlib.pylab as plt
 from statsmodels.tsa.arima_model import ARIMA
 from sys import maxsize
-
-df = open('flow1200.csv',)
+ad = 'olddata/flow1200.csv'
+df = open(ad)
 data = pd.read_csv(df,encoding='utf-8', index_col='time')
 data.index = pd.to_datetime(data.index)
 data_log = np.log(data)
+data_log_values = data_log.values
+
 
 def proper_model(data_ts, maxLag):
     init_bic = maxsize
@@ -31,4 +33,4 @@ def proper_model(data_ts, maxLag):
 
 if __name__ == '__main__':
 
-    print(proper_model(data_log,3))
+    print(proper_model(data_log_values,3))
