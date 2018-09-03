@@ -27,14 +27,17 @@ def inverse_difference(history, yhat, interval=1):
 
 def Arima_up(x):
     differenced = difference(x, days_up)
-
-    model = ARIMA(differenced, order=(1, 0, 2))
+    _, p, q, _ = proper_model(differenced,3)
+    print(p,q)
+    model = ARIMA(differenced, order=(p, 0, q))
     ARIMA_model = model.fit(disp=0)
     return ARIMA_model
 
 def Arima_down(x):
     differenced = difference(x, days_down)
-    model = ARIMA(differenced, order=(2, 0, 2))
+    _,p,q,_ = proper_model(differenced,3)
+    print(p,q)
+    model = ARIMA(differenced, order=(p, 0, q))
     ARIMA_model = model.fit(disp=0)
     return ARIMA_model
 
@@ -83,19 +86,19 @@ def proper_model(data_ts, maxLag):
     return init_bic, init_p, init_q, init_properModel
 
 if __name__ == '__main__':
-    days_up = 24
-    days_down = 23
+    days_up = 3
+    days_down = 12
     predict_long = 23
-    path_in = 'data/in/outdata/'  #文件夹路径
+    path_in = 'data/in/outdata/'  # 文件夹路径
     path_out = 'data/out/'
-    count =0
+    count = 0
     for file in os.listdir(path_in):
-        df = open(path_in+file,'rb')  # file
+        df = open(path_in + file, 'rb')  # file
         # data = pd.read_csv(df, usecols = [0])
-        data = pd.read_csv(df,header=None)
-        data.columns = ['up','down','time']
+        data = pd.read_csv(df, header=None)
+        data.columns = ['time', 'up', 'down']
 
-        if len(data)<predict_long:
+        if len(data) < predict_long:
             continue
         X1 = data['up']
         X2 = data['down']
@@ -107,15 +110,18 @@ if __name__ == '__main__':
             model_down = Arima_down(X2)
         except:
             continue
-        results_pre_up = predict(X1,model_up,days_up)
-        results_pre_down = predict(X2,model_down,days_down)
-        count+=1
-        print(count)
+        results_pre_up = predict(X1, model_up, days_up)
+        results_pre_down = predict(X2, model_down, days_down)
+        count += 1
+        if count%500 == 0:
+            print(count)
 
-        rng = pd.date_range(data['time'][0], periods=len(data)+predict_long+1, freq='H')
+
+        rng = pd.date_range(data['time'][0], periods=len(data) + predict_long + 1, freq='H')
         rng = np.array(rng)
-        results_pre = DataFrame({'time':rng,'up':results_pre_up,'down':results_pre_down})
+        results_pre = DataFrame({'time': rng, 'up': results_pre_up, 'down': results_pre_down})
         # results_pre = pd.Series(results_pre,index=rng)
-        path = os.path.join(path_out+file)
-        results_pre.to_csv(str(path),index=0)
-        # show(results_pre)
+        path = os.path.join(path_out + file)
+        results_pre.to_csv(str(path), index=0)
+        show(results_pre['down'])
+    print('total:', count)
