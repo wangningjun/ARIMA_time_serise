@@ -28,16 +28,16 @@ def inverse_difference(history, yhat, interval=1):
 def Arima_up(x):
     differenced = difference(x, days_up)
     _, p, q, _ = proper_model(differenced,3)
-    print(p,q)
-    model = ARIMA(differenced, order=(p, 0, q),freq='D')
+    # print(p,q)#打印pq
+    model = ARIMA(differenced, order=(p, 0, q))
     ARIMA_model = model.fit(disp=0)
     return ARIMA_model
 
 def Arima_down(x):
     differenced = difference(x, days_down)
     _,p,q,_ = proper_model(differenced,3)
-    print(p,q)
-    model = ARIMA(differenced, order=(p, 0, q),freq='D')
+    # print(p,q)  #打印pq
+    model = ARIMA(differenced, order=(p, 0, q))
     ARIMA_model = model.fit(disp=0)
     return ARIMA_model
 
@@ -96,8 +96,8 @@ if __name__ == '__main__':
         df = open(path_in + file, 'rb')  # file
         # data = pd.read_csv(df, usecols = [0])
         data = pd.read_csv(df, header=None)
-        data.columns = ['time', 'up', 'down']
-        data = data.head(136)
+        data.columns = ['time', 'up', 'down']  #加上表头
+        # data = data.head(136)
         if len(data) < predict_long:
             continue
         X1 = data['up']
@@ -106,14 +106,24 @@ if __name__ == '__main__':
             model_up = Arima_up(X1)
         except:
             continue
+
         try:
             model_down = Arima_down(X2)
         except:
             continue
-        results_pre_up = predict(X1, model_up, days_up)
-        results_pre_down = predict(X2, model_down, days_down)
+        # ------------
+        try:
+            results_pre_up = predict(X1, model_up, days_up)
+        except:
+            continue
+
+        try:
+            results_pre_down = predict(X2, model_down, days_down)
+        except:
+            continue
+
         count += 1
-        if count%500 == 0:
+        if count%100 == 0:
             print(count)
 
 
@@ -123,5 +133,5 @@ if __name__ == '__main__':
         # results_pre = pd.Series(results_pre,index=rng)
         path = os.path.join(path_out + file)
         results_pre.to_csv(str(path), index=0)
-        show(results_pre['down'])
+        # show(results_pre['down'])
     print('total:', count)

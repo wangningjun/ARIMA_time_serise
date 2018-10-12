@@ -71,7 +71,7 @@ def show_double(predict,realy):
     plt.subplot(2, 1, 1)
     plt.plot(predict, color='red', label='predict')
     plt.subplot(2, 1, 2)
-    plt.plot(realy, color='red', label='realy')
+    plt.plot(realy, color='blue', label='realy')
     plt.show()
 
 def proper_model(data_ts, maxLag):
@@ -93,7 +93,7 @@ def proper_model(data_ts, maxLag):
                 init_properModel = results_ARIMA
                 init_bic = bic
     return init_bic, init_p, init_q, init_properModel
-
+'''
 if __name__ == '__main__':
     days_up = 24
     days_down = 24
@@ -106,6 +106,7 @@ if __name__ == '__main__':
 
         data = pd.read_csv(df, header=None)
         data.columns = ['time', 'up', 'down']
+        # data = pd.read_csv(df)  # 存在抬头的情况
         len_data = len(data)
         data_ = data.head(len_data-(predict_long+1))   # 除去最后三十行 都要
         if len(data_) < predict_long:
@@ -125,12 +126,34 @@ if __name__ == '__main__':
         count += 1
         real_up = data['up'].tail(predict_long+1)
         real_down = data['down'].tail(predict_long+1)
-        show(results_pre_up, real_up)
-
         pre_up_long = np.array(results_pre_up[-(predict_long+1):])
+        show(pre_up_long, real_up)  # 展示预测的三十天和真实的三十天
         smape_up = sum(abs( pre_up_long- real_up.values)/(pre_up_long+real_up.values))/(predict_long+1)*2
         # smape_down = sum(abs(results_pre_down-real_down.values)/(results_pre_down+real_down.values))/len(results_pre_down)*2
 
         print(smape_up)
+'''
 
-    # print('total:', count)
+
+if __name__ == '__main__':
+    days_up = 24
+    days_down = 24
+    predict_long = 29
+    path_in = 'data/in/data/'  # 文件夹路径
+    path_out = 'data/out/'
+    for file in os.listdir(path_in):
+        df = open(path_in + file, 'rb')  # file
+
+        # data = pd.read_csv(df, header=None)
+        # data.columns = ['time', 'up', 'down']
+        data = pd.read_csv(df)  # 存在抬头的情况
+        real_up = data['down'][-days_down*2:-days_down]
+        pre_up = data['down'].tail(days_up)
+
+
+        show(real_up, pre_up)  # 展示预测的24天和真实的24天
+        real_up = real_up.values
+        pre_up = np.array(pre_up.values)
+        smape_up = sum(abs(real_up- pre_up)/(real_up+pre_up))/(days_up)*2
+        print(smape_up)
+        # smape_down = sum(abs(results_pre_down-real_down.values)/(results_pre_down+real_down.values))/len(results_pre_down)*2
